@@ -7,6 +7,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.cloud.stream.converter.CompositeMessageConverterFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.util.StreamUtils;
 
@@ -50,6 +51,7 @@ public class BigQueryConfiguration {
 	private String table;
 
 	private Optional<TableId> tableId = Optional.empty();
+	private CompositeMessageConverterFactory converterFactory = new CompositeMessageConverterFactory();
 
 	public BigQuery getBigQuery() {
 		if(!bigQuery.isPresent()) {
@@ -125,5 +127,9 @@ public class BigQueryConfiguration {
 			tableId = Optional.of(TableId.of(getProjectId(), dataset, table));
 		}
 		return tableId.get();
+	}
+
+	public CompositeMessageConverterFactory getConverterFactory() {
+		return converterFactory;
 	}
 }

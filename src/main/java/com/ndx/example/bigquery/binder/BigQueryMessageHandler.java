@@ -1,28 +1,33 @@
 package com.ndx.example.bigquery.binder;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.stream.binder.ProducerProperties;
+import org.springframework.cloud.stream.converter.CompositeMessageConverterFactory;
 import org.springframework.cloud.stream.provisioning.ProducerDestination;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.converter.MessageConverter;
+import org.springframework.util.MimeType;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.BigQueryError;
 import com.google.cloud.bigquery.InsertAllRequest;
-import com.google.cloud.bigquery.InsertAllRequest.RowToInsert;
 import com.google.cloud.bigquery.InsertAllResponse;
 import com.google.cloud.bigquery.TableId;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import com.ndx.example.bigquery.logic.WithTable;
 
 public class BigQueryMessageHandler implements MessageHandler {
@@ -33,17 +38,35 @@ public class BigQueryMessageHandler implements MessageHandler {
 	private BigQuery bigQuery;
 	private TableId tableId;
 
+	private BigQueryConfiguration configuration;
+
+	private ProducerDestination destination;
+
+	private ProducerProperties properties;
+
+	private CompositeMessageConverterFactory converterFactory;
+
+	private BigQueryConverter bigQueryConverter = new JacksonConverter();
+
 	public BigQueryMessageHandler(BigQueryConfiguration configuration, ProducerDestination destination, ProducerProperties producerProperties,
 			MessageChannel errorChannel) {
+		this.configuration = configuration;
+		this.destination = destination;
+		this.properties = producerProperties;
 		bigQuery = configuration.getBigQuery();
 		withTable = new WithTable(configuration, destination.getName());
 		tableId = withTable.getTableId();
+		this.converterFactory = configuration.getConverterFactory();
 	}
 
 	@Override
 	public void handleMessage(Message<?> message) throws MessagingException {
-		withTable.whenTableExists(null, table -> {
-			InsertAllResponse response = bigQuery.insertAll(InsertAllRequest.newBuilder(tableId).addRow(toBigQueryRow(message))
+		MessageConverter json = converterFactory.getMessageConverterForType(MimeType.valueOf("application/json"));
+		final JsonNode jsonMessage = (JsonNode) json.fromMessage(message, JsonNode.class);
+		withTable.whenTableExists(jsonMessage, table -> {
+			Map<String, Object> bigQueryRow = bigQueryConverter.toBigQueryRow(jsonMessage);
+			InsertAllResponse response = bigQuery.insertAll(InsertAllRequest.newBuilder(tableId)
+							.addRow(bigQueryRow)
 							// More rows can be added in the same RPC by invoking .addRow() on the builder
 							.build());
 			boolean transmitted = !response.hasErrors();
@@ -64,32 +87,4 @@ public class BigQueryMessageHandler implements MessageHandler {
 		});
 	}
 
-	private Map<String, Object> toBigQueryRow(Message<?> message) {
-		return toBigQueryRow((JsonObject) message.getPayload());
-	}
-
-	private Map<String, Object> toBigQueryRow(JsonObject body) {
-		Map<String, Object> returned = new LinkedHashMap<>();
-		for (String key : body.keySet()) {
-			Object value = body.get(key);
-			returned.put(key, toBigQueryValue(value));
-		}
-		return returned;
-	}
-
-	private Object toBigQueryValue(Object value) {
-		if (value instanceof JsonObject) {
-			JsonObject obj = (JsonObject) value;
-			return toBigQueryRow(obj);
-		} else if (value instanceof JsonArray) {
-			JsonArray array = (JsonArray) value;
-			List<Object> returned = new ArrayList<>();
-			for (Object o : array) {
-				returned.add(toBigQueryValue(o));
-			}
-			return returned;
-		} else {
-			return value;
-		}
-	}
 }

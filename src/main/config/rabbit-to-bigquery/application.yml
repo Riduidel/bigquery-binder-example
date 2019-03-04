@@ -8,12 +8,12 @@ spring:
           binder: local_rabbit
           destination: testQueue
           group: testQueue
-          contentType: application/json
+          content-type: application/json
         output:
           binder: bigquery
           destination: testTable
           group: testTopic
-          contentType: application/json
+          content-type: application/json
       binders:
         local_rabbit:
           type: rabbit

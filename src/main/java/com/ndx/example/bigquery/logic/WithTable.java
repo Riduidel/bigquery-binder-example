@@ -6,6 +6,7 @@ import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.api.gax.paging.Page;
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.BigQueryException;
@@ -14,8 +15,8 @@ import com.google.cloud.bigquery.Table;
 import com.google.cloud.bigquery.TableDefinition;
 import com.google.cloud.bigquery.TableId;
 import com.google.cloud.bigquery.TableInfo;
-import com.google.gson.JsonObject;
 import com.ndx.example.bigquery.binder.BigQueryConfiguration;
+import com.ndx.example.bigquery.logic.table.BigQueryJacksonTableDefinitionBuilder;
 
 public class WithTable {
 	private static final Logger logger = LoggerFactory
@@ -38,13 +39,13 @@ public class WithTable {
 
 	public WithTable(BigQueryConfiguration configuration, String name) {
 		this(configuration);
-		this.tableId = TableId.of(tableId.getProject(), tableId.getProject(), name);
+		this.tableId = TableId.of(tableId.getProject(), tableId.getDataset(), name);
 	}
 
-	public <Type> Type whenTableExists(JsonObject example, Function<Table, Type> andAfter) {
+	public <Type> Type whenTableExists(JsonNode example, Function<Table, Type> andAfter) {
 		return datasetCreator.whenDatasetExists(dataset -> {
 			if(!table.isPresent()) {
-				table = Optional.of(ensureTableExists(dataset, new BigQueryTableDefinitionBuilder(configuration).createDefinition(example)));
+				table = Optional.of(ensureTableExists(dataset, new BigQueryJacksonTableDefinitionBuilder(configuration).createDefinition(example)));
 			}
 			return (Type) andAfter.apply(table.get());
 		});
