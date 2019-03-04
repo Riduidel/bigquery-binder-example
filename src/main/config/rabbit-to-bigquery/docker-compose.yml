@@ -1,0 +1,8 @@
+version: '2.1'
+
+services:
+  rabbitmq:
+    extends:
+      file: ${project.build.directory}/config/docker-compose/rabbitmq.yml
+      service: rabbitmq
+      

@@ -1,0 +1,57 @@
+logging:
+  level:
+    ROOT: DEBUG
+spring:
+  cloud:
+    stream:
+      schemaRegistryClient:
+        endpoint: https://localhost48081
+      bindings:
+        input:
+          binder: local_rabbit
+          destination: testQueue
+          group: testQueue
+          content-type: application/json
+        output:
+          binder: local_kafka
+          destination: testTopic
+          group: testTopic
+          content-type: application/json
+      binders:
+        local_rabbit:
+          type: rabbit
+          environment:
+            spring:
+              rabbitmq:
+                host: localhost
+                port: 55672
+                username: aMQ2000
+                password: amqp2kafka
+                virtual-host: /
+        local_kafka:
+          type: kafka
+          environment:
+            spring:
+              cloud:
+                stream:
+                  kafka:
+                    binder.brokers: localhost:49092
+#                    streams :
+#                      binder :
+#                        configuration :
+#                          default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+#                          default.value.serde: org.springframework.kafka.support.serializer.JsonSerde
+      rabbit:
+        bindings:
+          input:
+            consumer:
+              binding-routing-key: rk1
+              exchange-name: testQueue
+              # I don't know why
+              queue-name-group-only: true
+              # I don't know why
+              bind-queue: true
+              # I don't know why
+              exchange-durable: true
+              # I don't know why
+              exchange-type: topic

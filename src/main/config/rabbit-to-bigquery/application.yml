@@ -1,0 +1,48 @@
+logging:
+  level: DEBUG
+spring:
+  cloud:
+    stream:
+      bindings:
+        input:
+          binder: local_rabbit
+          destination: testQueue
+          group: testQueue
+          contentType: application/json
+        output:
+          binder: bigquery
+          destination: testTable
+          group: testTopic
+          contentType: application/json
+      binders:
+        local_rabbit:
+          type: rabbit
+          environment:
+            spring:
+              rabbitmq:
+                host: localhost
+                port: 55672
+                username: aMQ2000
+                password: amqp2kafka
+                virtual-host: /
+        bigquery:
+          type: bigquery
+          environment:
+            spring:
+              bigquery:
+                dataset: archi_prh_amqp_to_bigquery_dev
+                table: testTable
+      rabbit:
+        bindings:
+          input:
+            consumer:
+              binding-routing-key: rk1
+              exchange-name: testQueue
+              # I don't know why
+              queue-name-group-only: true
+              # I don't know why
+              bind-queue: true
+              # I don't know why
+              exchange-durable: true
+              # I don't know why
+              exchange-type: topic

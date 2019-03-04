@@ -1,0 +1,46 @@
+create stream hmbuShsDevDcConsentLifecycle_json ( \
+  consumerTag VARCHAR, \
+  deliveryTag INT, \
+  isRedeliver  VARCHAR, \
+  exchange VARCHAR, \
+  routingKey VARCHAR, \
+  body STRUCT< \
+    Consent STRUCT< \
+      id VARCHAR, \
+      identity STRUCT< \
+        id VARCHAR, \
+        type VARCHAR, \
+        businessUnit VARCHAR \
+      >, \
+      finality VARCHAR, \
+      source STRUCT< \
+        id VARCHAR, \
+        type VARCHAR, \
+        origin VARCHAR, \
+        collaborator VARCHAR \
+      >, \
+      consentDate VARCHAR, \
+      expiryDate VARCHAR, \
+      expired VARCHAR, \
+      createdBy VARCHAR, \
+      createdDate VARCHAR \
+    > \
+  >, \
+  "amq2000.meta" STRUCT< \
+    mapping STRUCT< \
+      source STRUCT< \
+        queue VARCHAR \
+      >, \
+      destination STRUCT< \
+        "topic" VARCHAR \
+      > \
+    >, \
+    date VARCHAR \
+  > \
+  ) \
+  WITH(KAFKA_TOPIC='hmbuShsDevDcConsentLifecycle', VALUE_FORMAT='json');
+
+-- Convertir le JSON en AVRO
+CREATE STREAM hmbuShsDevDcConsentLifecycle_longterm \
+WITH(KAFKA_TOPIC='hmbuShsDevDcConsentLifecycle_longterm', VALUE_FORMAT='avro') \
+AS SELECT * FROM hmbuShsDevDcConsentLifecycle_json;

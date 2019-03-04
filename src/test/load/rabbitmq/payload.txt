@@ -1,0 +1,4 @@
+authorization: Basic Z3Vlc3Q6Z3Vlc3Q=
+Content-Type: text/plain;charset=UTF-8
+
+{"vhost":"/","name":"amq.default","properties":{"delivery_mode":1,"headers":{}},"routing_key":"testQueue","delivery_mode":"1","payload":"message de test","headers":{},"props":{},"payload_encoding":"string"}

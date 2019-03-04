@@ -1,0 +1,28 @@
+version: '2.1'
+
+services:
+# Most of the services here come from example https://github.com/simplesteph/kafka-stack-docker-compose/blob/master/target/docker-compose/full-stack.yml
+# activemq image come from https://hub.docker.com/r/webcenter/activemq/ which can be easily configured without relying upon complex systems
+  activemq:
+    image: webcenter/activemq:5.14.3
+    restart: unless-stopped
+    environment:
+      ACTIVEMQ_ADMIN_LOGIN: "admin"
+      ACTIVEMQ_ADMIN_PASSWORD: "admin"
+      ACTIVEMQ_ACTIVEMQ_USERS_aMQ2000: aMQ2000
+      ACTIVEMQ_ACTIVEMQ_USERS_TEST_POSTER: testPoster
+      ACTIVEMQ_GROUPS_reads: aMQ2000
+      ACTIVEMQ_GROUPS_owners: testPoster
+      ACTIVEMQ_CONFIG_QUEUES_testQueue: testQueue
+      ACTIVEMQ_CONFIG_TOPICS_testTopic: testTopic
+      ACTIVEMQ_CONFIG_MINMEMORY: 512
+      ACTIVEMQ_CONFIG_MAXMEMORY: 2048
+    ports:
+      # admin web UI
+      - "58161:8161"
+      # openwire
+      - "51616:61616"
+      # amqp
+      - "55672:5672"
+      # stomp
+      - "51613:61613"

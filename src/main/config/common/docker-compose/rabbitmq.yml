@@ -1,0 +1,15 @@
+version: '2.1'
+
+services:
+  rabbitmq:
+    hostname: rabbitmq
+    image: rabbitmq:3-management
+#    environment:
+    ports:
+      # amqp port
+      - 55672:5672
+      # management port
+      - 56672:15672
+    volumes:
+    - ./rabbitmq.config:/etc/rabbitmq/rabbitmq.config:ro
+    - ./rabbitmq.json:/etc/rabbitmq/definitions.json:ro

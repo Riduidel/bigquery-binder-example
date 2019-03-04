@@ -1,0 +1,1 @@
+sb -n 10000 -c 10 -x -B -m POST -u http://localhost:56672/api/exchanges/%%2F/amq.default/publish --template payload.txt

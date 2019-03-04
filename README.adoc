@@ -1,0 +1,14 @@
+# bigquery-binder-example
+
+Project trying to provide a simple implementation of BigQueryBinder for Spring Cloud Stream.
+Currently not working.
+
+Application can be started by running
+
+* `mvn spring-boot:run -Pautocompose -Dkafka.mode=rabbit-to-kafka` to test connection between rabbitmq and kafka
+* `mvn spring-boot:run -Pautocompose -Dkafka.mode=rabbit-to-bigquery` to test connection between rabbitmq and bigquery
+
+Servers are available the following way
+
+* [rabbitmq](https://localhost:56672) as guest:guest
+* [kafka-hq](https://localhost:48080) (with no login)
